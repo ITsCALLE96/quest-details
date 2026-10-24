@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "questdetails-gametest",
+	"version": "1.0.0",
+	"name": "Quest-Details Test-Client",
+	"environment": "client",
+	"entrypoints": {
+		"fabric-client-gametest": ["de.itscalle96.questdetails.gametest.QuestbuchTest"]
+	},
+	"depends": {
+		"questdetails": "*"
+	}
+}

@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "de.itscalle96.questdetails.mixin",
+	"plugin": "de.itscalle96.questdetails.mixin.MixinPlugin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"AdvancementWidgetMixin",
+		"BetterAdvancementWidgetMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

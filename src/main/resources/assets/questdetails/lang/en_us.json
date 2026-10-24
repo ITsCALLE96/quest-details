@@ -1,0 +1,13 @@
+{
+	"questdetails.schritte": "Steps",
+	"questdetails.fundort": "Where do I find it?",
+	"questdetails.biome": "Biomes: %s",
+	"questdetails.hoehe.bereich": "Height: Y %s to %s",
+	"questdetails.hoehe.ab": "Height: Y %s and above",
+	"questdetails.hoehe.bis": "Height: Y %s and below",
+	"questdetails.dimension": "Dimension: %s",
+	"questdetails.dimension.overworld": "Overworld",
+	"questdetails.dimension.the_nether": "Nether",
+	"questdetails.dimension.the_end": "The End",
+	"questdetails.schliessen": "ESC or click outside to close"
+}

@@ -1,0 +1,145 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+base {
+	archivesName = 'quest-details'
+}
+
+repositories {
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = 'Modrinth'
+				url = 'https://api.modrinth.com/maven'
+			}
+		}
+		filter {
+			includeGroup 'maven.modrinth'
+		}
+	}
+	maven {
+		name = 'TerraformersMC'
+		url = 'https://maven.terraformersmc.com/releases/'
+	}
+}
+
+loom {
+	mods {
+		"questdetails" {
+			sourceSet sourceSets.main
+		}
+	}
+}
+
+// Test-Client: startet Minecraft mit Sodium, Iris und Better Advancements, öffnet das Questbuch und macht Screenshots
+// (./gradlew runClientGameTest – Bilder landen in build/run/clientGameTest/screenshots)
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "questdetails-gametest"
+		enableGameTests = false
+		enableClientGameTests = true
+		eula = true
+	}
+}
+
+loom {
+	runs {
+		clientGameTest {
+			vmArg "-Dquestdetails.screenshots=${file('build/quest-details-screenshots').absolutePath}"
+		}
+	}
+}
+
+// Shader-Pack und Iris-Einstellung in den frisch geleerten Test-Ordner legen (siehe testumgebung/LIESMICH.md).
+// Endet das Spiel vorzeitig (z. B. beim Einschalten des Shaders), meldet der Lauf trotzdem Erfolg – deshalb
+// prüft doLast die Fertig-Markierung, die der Test erst nach dem letzten Bild schreibt.
+tasks.named('runClientGameTest') {
+	def bilder = file('build/quest-details-screenshots')
+	doFirst {
+		delete bilder
+		copy {
+			from 'testumgebung'
+			into loom.runs.clientGameTest.runDir
+			exclude 'LIESMICH.md'
+		}
+	}
+	doLast {
+		if (!new File(bilder, 'fertig.txt').exists()) {
+			throw new GradleException("Test-Client ist vorzeitig beendet worden (keine Fertig-Markierung in ${bilder}). Bitte erneut starten.")
+		}
+	}
+}
+
+// Questbuch aus dem Weihnachtsprojekt in den Test-Client: Datapack (Fortschritte) und die Questbuch-Texte des
+// Resourcepacks liegen im Nachbar-Repo mc-weihnachten-2026 und kommen als Mod-Ressourcen des Test-Mods hinein.
+def weihnachten = file('../mc-weihnachten-2026')
+tasks.named('processGametestResources') {
+	doFirst {
+		if (!new File(weihnachten, 'datapack/leitfaden/data').isDirectory()) {
+			throw new GradleException("Test-Client braucht das Questbuch aus ${weihnachten} (Repo mc-weihnachten-2026 daneben auschecken).")
+		}
+	}
+	from(new File(weihnachten, 'datapack/leitfaden/data')) { into 'data' }
+	from(new File(weihnachten, 'resourcepack/assets/weihnachten')) { into 'assets/weihnachten' }
+	from(new File(weihnachten, 'resourcepack/assets/leitfaden')) { into 'assets/leitfaden' }
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Better Advancements: optional, nur für den Hover-Mixin (siehe BetterAdvancementWidgetMixin)
+	compileOnly "maven.modrinth:better-advancements:${project.better_advancements_version}"
+
+	// Test-Client: so nah wie möglich am Pack
+	runtimeOnly "maven.modrinth:sodium:${project.sodium_version}"
+	runtimeOnly "maven.modrinth:iris:${project.iris_version}"
+	runtimeOnly "maven.modrinth:modmenu:${project.modmenu_version}"
+	// ./gradlew runClientGameTest -PohneBetterAdvancements prüft den Rückfall auf den Vanilla-Bildschirm
+	if (!project.hasProperty('ohneBetterAdvancements')) {
+		runtimeOnly "maven.modrinth:better-advancements:${project.better_advancements_version}"
+	}
+
+	gametestCompileOnly "maven.modrinth:iris:${project.iris_version}"
+
+	testImplementation platform('org.junit:junit-bom:5.13.4')
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+	useJUnitPlatform()
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = 'UTF-8'
+}
+
+jar {
+	def projectName = project.name
+	inputs.property "projectName", projectName
+
+	from("LICENSE") {
+		rename { "${it}_$projectName" }
+	}
+}

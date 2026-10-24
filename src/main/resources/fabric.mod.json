@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "questdetails",
+	"version": "${version}",
+	"name": "Quest-Details",
+	"description": "Klick auf eine Quest im Questbuch öffnet rechts eine Seitenleiste: Schritte mit Item-Symbolen, animiertes Rezept-Raster und Fundort. Funktioniert mit Better Advancements und dem normalen Fortschrittsbildschirm.",
+	"authors": [
+		"ITsCALLE96"
+	],
+	"contact": {
+		"sources": "https://github.com/ITsCALLE96/quest-details"
+	},
+	"license": "MIT",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"de.itscalle96.questdetails.QuestDetailsClient"
+		]
+	},
+	"mixins": [
+		"questdetails.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"betteradvancements": "*"
+	}
+}
